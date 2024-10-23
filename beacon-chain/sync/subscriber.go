@@ -87,16 +87,16 @@ func (s *Service) registerSubscribers(epoch primitives.Epoch, digest [4]byte) {
 	if flags.Get().SubscribeToAllSubnets {
 		s.subscribeStaticWithSubnets(
 			p2p.AttestationSubnetTopicFormat,
-			s.validateCommitteeIndexBeaconAttestation,   /* validator */
-			s.committeeIndexBeaconAttestationSubscriber, /* message handler */
+			s.wrapWithStatsRecord(s.validateCommitteeIndexBeaconAttestation), /* validator */
+			s.committeeIndexBeaconAttestationSubscriber,                      /* message handler */
 			digest,
 			params.BeaconConfig().AttestationSubnetCount,
 		)
 	} else {
 		s.subscribeDynamicWithSubnets(
 			p2p.AttestationSubnetTopicFormat,
-			s.validateCommitteeIndexBeaconAttestation,   /* validator */
-			s.committeeIndexBeaconAttestationSubscriber, /* message handler */
+			s.wrapWithStatsRecord(s.validateCommitteeIndexBeaconAttestation), /* validator */
+			s.committeeIndexBeaconAttestationSubscriber,                      /* message handler */
 			digest,
 		)
 	}

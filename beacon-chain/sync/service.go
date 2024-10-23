@@ -158,21 +158,24 @@ type Service struct {
 	newBlobVerifier                  verification.NewBlobVerifier
 	availableBlocker                 coverage.AvailableBlocker
 	ctxMap                           ContextByteVersions
+	attestationStats                 *AttestationStats
 }
 
 // NewService initializes new regular sync service.
 func NewService(ctx context.Context, opts ...Option) *Service {
 	c := gcache.New(pendingBlockExpTime /* exp time */, 0 /* disable janitor */)
 	ctx, cancel := context.WithCancel(ctx)
+	cfg := &config{clock: startup.NewClock(time.Unix(0, 0), [32]byte{})}
 	r := &Service{
 		ctx:                  ctx,
 		cancel:               cancel,
 		chainStarted:         abool.New(),
-		cfg:                  &config{clock: startup.NewClock(time.Unix(0, 0), [32]byte{})},
+		cfg:                  cfg,
 		slotToPendingBlocks:  c,
 		seenPendingBlocks:    make(map[[32]byte]bool),
 		blkRootToPendingAtts: make(map[[32]byte][]ethpb.SignedAggregateAttAndProof),
 		signatureChan:        make(chan *signatureVerifier, verifierLimit),
+		attestationStats:     NewAttestationStats(slots.ToEpoch(cfg.clock.CurrentSlot())),
 	}
 	for _, opt := range opts {
 		if err := opt(r); err != nil {
